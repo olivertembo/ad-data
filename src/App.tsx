@@ -1,25 +1,15 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { Box, Typography } from '@mui/material';
+import campaigns from './mock/campaigns.json';
+import DataTable from './components/DataTable';
+import { appStyles, appTitleStyles } from './styles';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Box sx={appStyles}>
+      <Typography sx={appTitleStyles}>Analytics Data</Typography>
+      <DataTable data={campaigns} />
+    </Box>
   );
 }
 
