@@ -17,3 +17,5 @@ interface ICampaign {
   average_session_duration: number;
   pages_per_session: number;
 }
+
+type Order = 'asc' | 'desc';

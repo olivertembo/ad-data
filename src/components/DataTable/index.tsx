@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { alpha } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -11,51 +10,11 @@ import TableRow from '@mui/material/TableRow';
 import TableSortLabel from '@mui/material/TableSortLabel';
 import Paper from '@mui/material/Paper';
 import { visuallyHidden } from '@mui/utils';
-
-interface Data  extends ICampaign { }
-
-
-function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
-  if (b[orderBy] < a[orderBy]) {
-    return -1;
-  }
-  if (b[orderBy] > a[orderBy]) {
-    return 1;
-  }
-  return 0;
-}
-
-type Order = 'asc' | 'desc';
-
-function getComparator<Key extends keyof any>(
-  order: Order,
-  orderBy: Key,
-): (
-  a: { [key in Key]: number | string },
-  b: { [key in Key]: number | string },
-) => number {
-  return order === 'desc'
-    ? (a, b) => descendingComparator(a, b, orderBy)
-    : (a, b) => -descendingComparator(a, b, orderBy);
-}
-
-// This method is created for cross-browser compatibility, if you don't
-// need to support IE11, you can use Array.prototype.sort() directly
-function stableSort<T>(array: readonly T[], comparator: (a: T, b: T) => number) {
-  const stabilizedThis = array.map((el, index) => [el, index] as [T, number]);
-  stabilizedThis.sort((a, b) => {
-    const order = comparator(a[0], b[0]);
-    if (order !== 0) {
-      return order;
-    }
-    return a[1] - b[1];
-  });
-  return stabilizedThis.map((el) => el[0]);
-}
+import { getComparator, stableSort } from '../../utils';
 
 interface HeadCell {
   disablePadding: boolean;
-  id: keyof Data;
+  id: keyof ICampaign;
   label: string;
   numeric: boolean;
 }
@@ -167,7 +126,7 @@ const headCells: readonly HeadCell[] = [
 
 interface EnhancedTableProps {
   numSelected: number;
-  onRequestSort: (event: React.MouseEvent<unknown>, property: keyof Data) => void;
+  onRequestSort: (event: React.MouseEvent<unknown>, property: keyof ICampaign) => void;
   onSelectAllClick: (event: React.ChangeEvent<HTMLInputElement>) => void;
   order: Order;
   orderBy: string;
@@ -175,10 +134,11 @@ interface EnhancedTableProps {
 }
 
 function EnhancedTableHead(props: EnhancedTableProps) {
-  const { onSelectAllClick, order, orderBy, numSelected, rowCount, onRequestSort } =
+  const { order, orderBy, onRequestSort } =
     props;
   const createSortHandler =
-    (property: keyof Data) => (event: React.MouseEvent<unknown>) => {
+    (property: keyof ICampaign) => (event: React.MouseEvent<unknown>) => {
+      console.log('createSortHandler', property);
       onRequestSort(event, property);
     };
 
@@ -216,18 +176,17 @@ interface IProps {
   data: ICampaign[];
 }
 
-export default function DataTable({ data }: IProps) {
-  console.log(data);
+export default function ICampaignTable({ data }: IProps) {
 
   const [order, setOrder] = React.useState<Order>('asc');
-  const [orderBy, setOrderBy] = React.useState<keyof Data>('campaign');
+  const [orderBy, setOrderBy] = React.useState<keyof ICampaign>('campaign_id');
   const [selected, setSelected] = React.useState<readonly string[]>([]);
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
 
   const handleRequestSort = (
     event: React.MouseEvent<unknown>,
-    property: keyof Data,
+    property: keyof ICampaign,
   ) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
@@ -299,18 +258,19 @@ export default function DataTable({ data }: IProps) {
             <TableBody>
               {stableSort(data, getComparator(order, orderBy))
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((data, index) => {
-                  const isItemSelected = isSelected(data.campaign);
+                .map((_data, index) => {
+                  console.log(`campaign-${index}`, _data);
+                  const isItemSelected = isSelected(_data.campaign);
                   const labelId = `enhanced-table-checkbox-${index}`;
 
                   return (
                     <TableRow
                       hover
-                      onClick={(event) => handleClick(event, data.campaign)}
+                      onClick={(event) => handleClick(event, _data.campaign)}
                       role="checkbox"
                       aria-checked={isItemSelected}
                       tabIndex={-1}
-                      key={data.campaign}
+                      key={`${_data.campaign}-${index}`}
                       selected={isItemSelected}
                     >
                       <TableCell
@@ -318,24 +278,24 @@ export default function DataTable({ data }: IProps) {
                         id={labelId}
                         scope="row"
                       >
-                        {data.campaign}
+                        {_data.campaign}
                       </TableCell>
-                      <TableCell align="right">{data.campaign_id}</TableCell>
-                      <TableCell align="right">{data.ad}</TableCell>
-                      <TableCell align="right">{data.ad_id}</TableCell>
-                      <TableCell align="right">{data.day}</TableCell>
-                      <TableCell align="right">{data.spent}</TableCell>
-                      <TableCell align="right">{data.impressions}</TableCell>
-                      <TableCell align="right">{data.clicks}</TableCell>
-                      <TableCell align="right">{data.reach}</TableCell>
-                      <TableCell align="right">{data['views_25%']}</TableCell>
-                      <TableCell align="right">{data['views_50%']}</TableCell>
-                      <TableCell align="right">{data['views_75%']}</TableCell>
-                      <TableCell align="right">{data['views_100%']}</TableCell>
-                      <TableCell align="right">{data.sessions}</TableCell>
-                      <TableCell align="right">{data.bounce_rate}</TableCell>
-                      <TableCell align="right">{data.average_session_duration}</TableCell>
-                      <TableCell align="right">{data.pages_per_session}</TableCell>
+                      <TableCell align="right">{_data.campaign_id}</TableCell>
+                      <TableCell align="right">{_data.ad}</TableCell>
+                      <TableCell align="right">{_data.ad_id}</TableCell>
+                      <TableCell align="right">{_data.day}</TableCell>
+                      <TableCell align="right">{_data.spent}</TableCell>
+                      <TableCell align="right">{_data.impressions}</TableCell>
+                      <TableCell align="right">{_data.clicks}</TableCell>
+                      <TableCell align="right">{_data.reach}</TableCell>
+                      <TableCell align="right">{_data['views_25%']}</TableCell>
+                      <TableCell align="right">{_data['views_50%']}</TableCell>
+                      <TableCell align="right">{_data['views_75%']}</TableCell>
+                      <TableCell align="right">{_data['views_100%']}</TableCell>
+                      <TableCell align="right">{_data.sessions}</TableCell>
+                      <TableCell align="right">{_data.bounce_rate*100}</TableCell>
+                      <TableCell align="right">{_data.average_session_duration}</TableCell>
+                      <TableCell align="right">{_data.pages_per_session}</TableCell>
                     </TableRow>
                   );
                 })}
